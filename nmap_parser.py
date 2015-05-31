@@ -21,12 +21,12 @@ from StringIO import StringIO
 class Nmap_parser:
     def __init__(self, nmap_xml, verbose=0):
         try:
-            self.hosts = self.nmap_parser(nmap_xml, verbose)
+            self.hosts = self.run(nmap_xml, verbose)
         except Exception, e:
             print("[!] There was an error %s") % (str(e))
             sys.exit(1)
 
-    def nmap_parser(self, nmap_xml, verbose):
+    def run(self, nmap_xml, verbose):
         # Parse the nmap xml file and extract hosts and place them in a dictionary
         # Input: Nmap XML file and verbose flag
         # Return: Dictionary of hosts [iterated number] = [hostname, address, protocol, port, service name, state]
