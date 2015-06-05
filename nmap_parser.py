@@ -20,29 +20,32 @@ from StringIO import StringIO
 
 class Nmap_parser:
     def __init__(self, nmap_xml, verbose=0):
+        self.nmap_xml = nmap_xml
+        self.verbose = verbose
+        self.hosts = {}
         try:
-            self.hosts = self.run(nmap_xml, verbose)
+            self.run()
         except Exception, e:
             print("[!] There was an error %s") % (str(e))
             sys.exit(1)
 
-    def run(self, nmap_xml, verbose):
+    def run(self):
         # Parse the nmap xml file and extract hosts and place them in a dictionary
         # Input: Nmap XML file and verbose flag
         # Return: Dictionary of hosts [iterated number] = [hostname, address, protocol, port, service name, state]
-        if not nmap_xml:
-            sys.exit("[!] Cannot open Nmap XML file: %s \n[-] Ensure that your are passing the correct file and format" % (nmap_xml))
+        if not self.nmap_xml:
+            sys.exit("[!] Cannot open Nmap XML file: %s \n[-] Ensure that your are passing the correct file and format" % (self.nmap_xml))
         try:
-            tree = etree.parse(nmap_xml)
+            tree = etree.parse(self.nmap_xml)
         except:
-            sys.exit("[!] Cannot open Nmap XML file: %s \n[-] Ensure that your are passing the correct file and format" % (nmap_xml))
+            sys.exit("[!] Cannot open Nmap XML file: %s \n[-] Ensure that your are passing the correct file and format" % (self.nmap_xml))
         hosts={}
         services=[]
         hostname_list=[]
         root = tree.getroot()
         hostname_node = None
-        if verbose > 0:
-            print ("[*] Parsing the Nmap XML file: %s") % (nmap_xml)
+        if self.verbose > 0:
+            print ("[*] Parsing the Nmap XML file: %s") % (self.nmap_xml)
         for host in root.iter('host'):
             hostname = "Unknown hostname"
             for addresses in host.iter('address'):
@@ -52,26 +55,26 @@ class Nmap_parser:
                 temp = addresses.get('addrtype')
                 if "mac" in temp:
                     hwaddress = addresses.get('addr')
-                    if verbose > 2:
+                    if self.verbose > 2:
                         print("[*] The host was on the same broadcast domain")
                 if "ipv4" in temp:
                     address = addresses.get('addr')
-                    if verbose > 2:
+                    if self.verbose > 2:
                         print("[*] The host had an IPv4 address")
                 if "ipv6" in temp:
                     addressv6 = addresses.get('addr')
-                    if verbose > 2:
+                    if self.verbose > 2:
                         print("[*] The host had an IPv6 address")
             try:
                 hostname_node = host.find('hostnames').find('hostname')
             except:
-                if verbose > 1:
+                if self.verbose > 1:
                     print ("[!] No hostname found")
             if hostname_node is not None:
                 hostname = hostname_node.get('name')
             else:
                 hostname = "Unknown hostname"
-                if verbose > 1:
+                if self.verbose > 1:
                     print("[*] The hosts hostname is %s") % (str(hostname_node))
             for item in host.iter('port'):
                 state = item.find('state').get('state')
@@ -92,19 +95,18 @@ class Nmap_parser:
             serv_name = service[4]
             hwaddress = service[5]
             state = service[6]
-            hosts[i] = [hostname, address, protocol, port, serv_name, hwaddress, state]
-            if verbose > 2:
+            self.hosts[i] = [hostname, address, protocol, port, serv_name, hwaddress, state]
+            if self.verbose > 2:
                 print ("[+] Adding %s with an IP of %s:%s with the service %s")%(hostname,address,port,serv_name)
-        if hosts:
-            if verbose > 4:
+        if self.hosts:
+            if self.verbose > 4:
                 print ("[*] Results from NMAP XML import: ")
-                for key, entry in hosts.iteritems():
+                for key, entry in self.hosts.iteritems():
                     print("[*] %s") % (str(entry))
-            if verbose > 0:
+            if self.verbose > 0:
                 print ("[+] Parsed and imported unique ports %s") % (str(i+1))
-            return(hosts)
         else:
-            if verbose > 0:
+            if self.verbose > 0:
                 print ("[-] No ports were discovered in the NMAP XML file")
 
     def hostsReturn(self):
@@ -122,6 +124,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(usage=usage)
     parser.add_argument("-x", "--xml", type=str, help="Generate a dictionary of data based on a NMAP XML import, more than one file may be passed, separated by a comma", action="store", dest="xml")
     parser.add_argument("-f", "--filename", type=str, action="store", dest="filename", help="The filename that will be used to create an XLSX")
+    parser.add_argument("-s", "--simple", action="store_const", dest="simple", default=1, const=0, help="Format the output into a simple excel product, instead of a report")
     parser.add_argument("-v", action="count", dest="verbose", default=1, help="Verbosity level, defaults to one, this outputs each command and result")
     parser.add_argument("-q", action="store_const", dest="verbose", const=0, help="Sets the results to be quiet")
     parser.add_argument('--version', action='version', version='%(prog)s 0.43b')
@@ -136,6 +139,7 @@ if __name__ == '__main__':
     xml = args.xml                      # nmap XML
     verbose = args.verbose              # Verbosity level
     filename = args.filename            # Filename to output XLSX
+    simple = args.simple          # Sets the colors for the excel spreadsheet output
     xml_list=[]                         # List to hold XMLs
 
     # Set return holder
@@ -210,7 +214,7 @@ if __name__ == '__main__':
         processed_hosts[k] = v
 
     # Generator for XLSX documents
-    gen.Nmap_doc_generator(verbose, processed_hosts, filename)
+    gen.Nmap_doc_generator(verbose, processed_hosts, filename, simple)
 
     # Printout of dictionary values
     #if verbose > 0:
