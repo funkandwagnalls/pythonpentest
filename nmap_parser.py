@@ -16,8 +16,6 @@ except Exception as e:
     print(e)
     sys.exit("[!] Please download the nmap_doc_generator.py script")
 
-from StringIO import StringIO
-
 class Nmap_parser:
     def __init__(self, nmap_xml, verbose=0):
         self.nmap_xml = nmap_xml
@@ -76,15 +74,15 @@ class Nmap_parser:
                 hostname = "Unknown hostname"
                 if self.verbose > 1:
                     print("[*] The hosts hostname is %s") % (str(hostname_node))
+            hostname_list.append(hostname)
             for item in host.iter('port'):
                 state = item.find('state').get('state')
                 #if state.lower() == 'open':
-                hostname_list.append(hostname)
                 service = item.find('service').get('name')
                 protocol = item.get('protocol')
                 port = item.get('portid')
                 services.append([hostname_list, address, protocol, port, service, hwaddress, state])
-                hostname_list=[]
+        hostname_list=[]
         for i in range(0, len(services)):
             service = services[i]
             index = len(service) - 1
@@ -204,4 +202,4 @@ if __name__ == '__main__':
     # Printout of dictionary values
     #if verbose > 0:
     #    for key, target in processed_hosts.iteritems():
-    #        print "[*] Hostname: %s IP: %s Protocol: %s Port: %s Service: %s State: %s MAC address: %s" % (target[0],target[1],target[2],target[3],target[4],target[6],target[5])
+    #        print("[*] Hostname: %s IP: %s Protocol: %s Port: %s Service: %s State: %s MAC address: %s" % (target[0],target[1],target[2],target[3],target[4],target[6],target[5]))
