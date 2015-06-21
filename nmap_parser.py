@@ -118,7 +118,7 @@ class Nmap_parser:
 
 if __name__ == '__main__':
     # If script is executed at the CLI
-    usage = '''usage: %(prog)s [-x reports.xml] -q -v -vv -vvv'''
+    usage = '''usage: %(prog)s [-x reports.xml] [-f xml_output2.xlsx] -q -v -vv -vvv'''
     parser = argparse.ArgumentParser(usage=usage)
     parser.add_argument("-x", "--xml", type=str, help="Generate a dictionary of data based on a NMAP XML import, more than one file may be passed, separated by a comma", action="store", dest="xml")
     parser.add_argument("-f", "--filename", type=str, action="store", dest="filename", default="xml_output", help="The filename that will be used to create an XLSX")
