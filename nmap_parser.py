@@ -190,11 +190,14 @@ if __name__ == '__main__':
             print("[*] Key: %s Value: %s") % (key,value)
     temp = [(k, hosts_dict[k]) for k in hosts_dict]
     temp.sort()
+    key = 0
     for k, v in temp:
         compare = lambda x, y: collections.Counter(x) == collections.Counter(y)
         if str(v) in str(processed_hosts.values()):
             continue
-        processed_hosts[k] = v
+        else:
+            key+=1
+            processed_hosts[key] = v
 
     # Generator for XLSX documents
     gen.Nmap_doc_generator(verbose, processed_hosts, filename, simple)
